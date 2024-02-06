@@ -1,0 +1,19 @@
+[Unit]
+
+Description=Clash - A rule-based tunnel in Go
+
+Documentation=https://github.com/Dreamacro/clash/wiki
+
+[Service]
+
+OOMScoreAdjust=-1000
+
+ExecStart=/home/qiangxu/Projects/clash-9q/bin/clash-linux-amd64 -d /home/qiangxu/Projects/clash-9q/config/ -ext-ui /home/qiangxu/Projects/clash-9q/ui/ -f /home/qiangxu/Projects/clash-9q/config/config.yaml
+
+Restart=on-failure
+
+RestartSec=5
+
+[Install]
+
+WantedBy=multi-user.target
