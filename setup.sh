@@ -16,3 +16,12 @@ echo "sudo ./bin/clash-linux-amd64 -d config/ -ext-ui ./ui/ -f config/config.yam
 
 #alias tkk="export https_proxy=http://127.0.0.1:7890; export http_proxy=http://127.0.0.1:7890; export all_proxy=socks5://127.0.0.1:7890;"
 #alias sgg="unset http_proxy; unset https_proxy; unset all_proxy;"
+
+sudo systemctl start clash@0809
+sudo systemctl start clash@igg5
+
+sudo systemctl enable clash@0809.service
+sudo systemctl enable clash@igg5.service
+
+sudo systemctl status clash@0809.service
+sudo systemctl status clash@igg5.service

@@ -50,3 +50,18 @@ sudo systemctl status clash
 4.2. 打开`/etc/proxychains.conf`文件：`sudo vi /etc/proxychains.conf`，在文件最后改成相应的代理方式、地址和端口，配置代理：`http://127.0.0.1:7890`
 
 4.3. 测试是否成功：`proxychains curl -kIsS https://www.google.com`
+
+
+5. 常见命令行
+
+# 查看服务配置文件的完整路径
+systemctl show clash.service | grep FragmentPath
+
+# 或者使用这个命令
+systemctl cat clash.service
+
+# 重新加载systemd配置
+sudo systemctl daemon-reload
+
+# 重启服务
+sudo systemctl restart clash.service
