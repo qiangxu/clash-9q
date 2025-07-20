@@ -6,7 +6,7 @@ After=network.target
 Type=simple
 User=root
 # %i 会被替换为 @ 符号后的实例名 (例如 "config1")
-ExecStart=/home/qiangxu/Projects/clash-9q/bin/clash-linux-amd64 -d /home/qiangxu/Projects/clash-9q/config/ -ext-ui /home/qiangxu/Projects/clash-9q/ui/ -f /home/qiangxu/Projects/clash-9q/config/%i.yaml
+ExecStart=/home/qiangxu/Projects/clash-9q/bin/mihomo-linux-amd64-v1.19.11 -d /home/qiangxu/Projects/clash-9q/config/ -ext-ui /home/qiangxu/Projects/clash-9q/ui/ -f /home/qiangxu/Projects/clash-9q/config/%i.yaml
 Restart=on-failure
 
 [Install]
