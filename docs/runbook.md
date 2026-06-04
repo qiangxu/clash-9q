@@ -184,13 +184,23 @@ https_proxy=http://127.0.0.1:7890 curl -I https://www.google.com
 
 ### proxychains（包裹任意进程）
 
+远端**已经装好并配好**：`/etc/proxychains.conf` 的 `[ProxyList]` 只留 `http 127.0.0.1 7890` 一条 active（原文备份在 `/etc/proxychains.conf.bak`）。直接用即可：
+
 ```bash
-sudo apt-get install -y proxychains
-# 编辑 /etc/proxychains.conf 末尾加：http 127.0.0.1 7890
 proxychains curl -kIsS https://www.google.com
 ```
 
+`proxy_dns` 默认开着，DNS 也走代理不会泄露；`strict_chain` 模式下只有一条活代理时等同 dynamic_chain，没问题。
+
 适合那些既不读环境变量、又没原生代理配置的老程序（动态库注入劫持 `connect()`）。
+
+从零重配（万一重装系统）：
+
+```bash
+sudo apt-get install -y proxychains
+# 编辑 /etc/proxychains.conf 的 [ProxyList]：保留唯一 active 行 http 127.0.0.1 7890，
+# 注释掉默认的 socks4 9050 / socks5 1080 等 — strict_chain 下挂掉的代理会让整条 chain 失败。
+```
 
 ## 9. 紧急回滚
 
