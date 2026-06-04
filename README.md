@@ -4,6 +4,7 @@
 
 > - 远端运维 / 故障排查：[`docs/runbook.md`](docs/runbook.md)
 > - 这套方案为什么这么搭：[`docs/findings.md`](docs/findings.md)
+> - 换订阅 URL / 换机场怎么走：[`docs/update-subscription.md`](docs/update-subscription.md)
 
 ## 1. 实例配置
 
@@ -52,6 +53,8 @@ V-Ninja GUI 在 mac 上会自动拉新订阅；要把同一份配置推到远端
 ```
 
 脚本会：抓 GUI 内核（ninja-mihomo）正在用的 yaml → 去掉 tun/dns/secret/cors 段 + 改端口为 7890/9090 → scp 到远端 `config/ninja.yaml` → 重启 ninja@<instance> → 验证。
+
+> 换订阅 URL / 换机场（不是日常拉新版）：参 [`docs/update-subscription.md`](docs/update-subscription.md)，有一步必须先看的 server 形态检查。
 
 ## 6. 本地访问 dashboard（选节点 / 看流量）
 
