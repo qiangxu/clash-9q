@@ -60,8 +60,9 @@ V-Ninja GUI 在 mac 上会自动拉新订阅；要把同一份配置推到远端
 ```bash
 ssh -N -D 127.0.0.1:1234 \
     -J qiangxu@112.124.26.131:48425 qiangxu@192.168.3.180
-# 然后浏览器走 SOCKS5 127.0.0.1:1234，访问 http://127.0.0.1:9090/ui/
-# yacd 表单填 Host=127.0.0.1 Port=9090 Secret=9q-ninja-local
+# 浏览器走 SOCKS5 127.0.0.1:1234，访问 http://192.168.3.180:9090/ui/
+# yacd 表单填 Host=192.168.3.180 Port=9090 Secret=9q-ninja-local
+# （用 LAN IP 而不是 127.0.0.1，因为浏览器默认绕过 loopback）
 ```
 
 ## 7. 从旧 clash@* 实例迁移

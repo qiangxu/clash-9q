@@ -17,7 +17,7 @@ REMOTE="qiangxu@192.168.3.180"
 REMOTE_CONFIG_PATH="Projects/clash-9q/config/ninja.yaml"
 INSTANCE="${1:-ninja}"
 MIXED_PORT=7890
-EXTERNAL_CONTROLLER="127.0.0.1:9090"
+EXTERNAL_CONTROLLER="0.0.0.0:9090"            # LAN-reachable so a SOCKS-into-180 browser can hit it
 EXTERNAL_CONTROLLER_SECRET="9q-ninja-local"   # also required by yacd login form
 
 RUNTIME_YAML=$(ps -axo command= 2>/dev/null \

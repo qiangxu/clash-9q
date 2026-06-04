@@ -91,16 +91,16 @@ ssh -N -o ExitOnForwardFailure=yes \
 **第 2 步**：浏览器走这个 SOCKS（系统代理 / SwitchyOmega / FoxyProxy 之类），然后访问：
 
 ```
-http://127.0.0.1:9090/ui/
+http://192.168.3.180:9090/ui/
 ```
 
-> 此时浏览器视角已经"在 180 里"，`127.0.0.1` 就是 180 自己。
+> 注意用 LAN IP，不要用 `127.0.0.1` —— Chrome / Safari 等默认绕过 loopback 直连本机，不走 SOCKS。配套地，mihomo 的 `external-controller` 监听 `0.0.0.0:9090`（仍在内网，有 secret 鉴权）。
 
 yacd 首屏表单填：
 
 | 字段 | 值 |
 |---|---|
-| Host | `127.0.0.1` |
+| Host | `192.168.3.180` |
 | Port | `9090` |
 | Secret | `9q-ninja-local`（同 `scripts/sync-from-gui.sh` 里的 `EXTERNAL_CONTROLLER_SECRET`） |
 
