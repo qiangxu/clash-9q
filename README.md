@@ -1,59 +1,76 @@
-# A clash setup for the ubuntu system.
-  
-  
-  
-1. 开机自启动:
+# Ninja (mihomo) setup for Ubuntu
 
-在`/etc/systemd/system`下新建`clash@.service`文件：`sudo vi /etc/systemd/system/clash@.service`，填入：
+基于 mihomo 内核，跑 Ninja 订阅；支持多实例（systemd template）。
 
-```
-[Unit]
-Description=Clash daemon for %i
-After=network.target
+## 1. 实例配置
 
-[Service]
-Type=simple
-User=root
-# %i 会被替换为 @ 符号后的实例名 (例如 "0809")
-ExecStart=/home/qiangxu/Projects/clash-9q/bin/clash-linux-amd64 -d /home/qiangxu/Projects/clash-9q/config/ -ext-ui /home/qiangxu/Projects/clash-9q/ui/ -f /home/qiangxu/Projects/clash-9q/config/%i.yaml
-Restart=on-failure
+每个实例一份 yaml，文件名 = 实例名：
 
-[Install]
-WantedBy=multi-user.target
+```bash
+cp config/ninja.yaml.template config/ninja.yaml
+# 编辑 config/ninja.yaml，把 __SUBSCRIPTION_URL__ 换成订阅地址
+# 多实例：再来一份 cp config/ninja.yaml.template config/<other>.yaml，注意改 mixed-port / external-controller 端口避免冲突
 ```
 
+> `config/*.yaml` 已在 `.gitignore` 里，订阅 URL 不会进 git。
 
-2. 完成开机自启:
+## 2. systemd 模板
 
-```
-sudo systemctl start clash@0809
-sudo systemctl start clash@igg5
+在 `/etc/systemd/system/` 安装 `ninja@.service`：
 
-sudo systemctl enable clash@0809.service
-sudo systemctl enable clash@igg5.service
-
-sudo systemctl status clash@0809.service
-sudo systemctl status clash@igg5.service
-
+```bash
+sudo cp system/ninja@.service /etc/systemd/system/
+sudo systemctl daemon-reload
 ```
 
+`ninja@<name>.service` 会读 `config/<name>.yaml` 作为配置。
 
-3. 代理链proxychains安装配置:
+## 3. 启动 / 开机自启
 
-3.1. 使用 apt 进行安装：`sudo apt-get install proxychains`
+```bash
+sudo systemctl enable --now ninja@ninja
+sudo systemctl status ninja@ninja
+journalctl -u ninja@ninja -f
+```
 
-3.2. 打开`/etc/proxychains.conf`文件：`sudo vi /etc/proxychains.conf`，在文件最后改成相应的代理方式、地址和端口，配置代理：`http://127.0.0.1:7890`
+## 4. 验证
 
-3.3. 测试是否成功：`proxychains curl -kIsS https://www.google.com`
+```bash
+curl -x http://127.0.0.1:7890 -I https://www.google.com
+```
 
+## 5. 机场更新后同步配置（mac 上跑）
 
+V-Ninja GUI 在 mac 上会自动拉新订阅；要把同一份配置推到远端：
 
-4. 常见命令行
+```bash
+./scripts/sync-from-gui.sh           # 默认推 ninja@ninja
+./scripts/sync-from-gui.sh other     # 推 ninja@other
+```
 
-4.1. 查看服务配置文件的完整路径: `systemctl show clash.service | grep FragmentPath`
+脚本会：抓 GUI 内核（ninja-mihomo）正在用的 yaml → 去掉 tun/dns/secret/cors 段 + 改端口为 7890/9090 → scp 到远端 `config/ninja.yaml` → 重启 ninja@<instance> → 验证。
 
-4.2. 或者使用这个命令: `systemctl cat clash.service`
+## 6. 从旧 clash@* 实例迁移
 
-4.3. 重新加载systemd配置: `sudo systemctl daemon-reload`
+```bash
+sudo systemctl list-units 'clash@*' --all
+sudo systemctl disable --now clash@<instance>
+sudo rm -f /etc/systemd/system/clash@.service
+sudo systemctl daemon-reload
+```
 
-4.4. 重启服务: `sudo systemctl restart clash.service`
+## 7. proxychains（可选）
+
+```bash
+sudo apt-get install proxychains
+# 编辑 /etc/proxychains.conf 末尾加 http 代理：http 127.0.0.1 7890
+proxychains curl -kIsS https://www.google.com
+```
+
+## 8. 常用命令
+
+```bash
+systemctl cat ninja@ninja.service           # 查看 unit 文件
+sudo systemctl daemon-reload                # 改了 unit 后重新加载
+sudo systemctl restart ninja@ninja.service  # 重启
+```

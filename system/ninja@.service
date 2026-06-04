@@ -1,0 +1,13 @@
+[Unit]
+Description=Ninja (mihomo) daemon for %i
+After=network.target
+
+[Service]
+Type=simple
+User=root
+# %i 会被替换为 @ 符号后的实例名 (例如 "ninja")
+ExecStart=/home/qiangxu/Projects/clash-9q/bin/ninja-mihomo -d /home/qiangxu/Projects/clash-9q/config/ -ext-ui /home/qiangxu/Projects/clash-9q/ui/ -f /home/qiangxu/Projects/clash-9q/config/%i.yaml
+Restart=on-failure
+
+[Install]
+WantedBy=multi-user.target

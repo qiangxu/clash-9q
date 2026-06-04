@@ -1,1 +1,5 @@
 *.sw[op]
+.DS_Store
+config/*.yaml
+config/providers/
+config/cache.db

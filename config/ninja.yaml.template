@@ -1,0 +1,27 @@
+# ninja@<instance>.service 读取的实际配置文件路径为 config/<instance>.yaml
+#
+# 本仓库的 .gitignore 已经把 config/*.yaml 排除在外 —— 实际订阅内容
+# (含 token / PASS-INFO / 节点密码 / DOMAIN 规则集等)
+# 由 V-Ninja GUI 客户端导出，本地另存为 config/<instance>.yaml 即可，不入 git。
+#
+# 文件应当形如：
+#
+#   #!MANAGED-CONFIG <ORIGINAL_SUBSCRIPTION_URL>
+#   #!PASS-INFO <BASE64_PAYLOAD>
+#
+#   mixed-port: 7890
+#   external-controller: '127.0.0.1:9090'
+#   mode: rule
+#   proxies:
+#     - { name: 'XX 01', type: ninja, server: ..., port: ..., method: aes-128-gcm,
+#         password: ..., node_password: ..., tls: true,
+#         udp: true, udp-over-tcp: true, udp-over-tcp-version: 2 }
+#   proxy-groups: [...]
+#   rules: [...]
+#
+# 注意：proxies 使用的 `type: ninja` 仅 V-Ninja 定制内核 (bin/ninja-mihomo)
+# 能识别；标准 mihomo 起来会报 `unknown proxy type: ninja`。所以
+# system/ninja@.service 的 ExecStart 必须指向 bin/ninja-mihomo。
+#
+# 多实例：cp config/ninja.yaml config/<other>.yaml，改 mixed-port 和
+# external-controller 端口避免冲突，然后 systemctl enable --now ninja@<other>
