@@ -155,7 +155,44 @@ curl -sS -x http://127.0.0.1:7891 -I https://www.google.com --max-time 15
 #    REMOTE_API=127.0.0.1:9091 后跑（或临时手动 ssh -L 1235:127.0.0.1:9091 ...）
 ```
 
-## 8. 紧急回滚
+## 8. 远端命令行让程序走代理
+
+`~/.bashrc` 里已经预置了两个 alias（同 `setup.sh` 注释里的写法，端口指向 ninja@ninja 的 7890）：
+
+```bash
+tkk    # 开代理：export HTTP_PROXY / HTTPS_PROXY / ALL_PROXY
+sgg    # 关代理：unset 上面三个
+```
+
+对大多数 CLI（curl / wget / git over https / 各种 SDK）这就够了。
+
+### 单次临时（不污染当前 shell）
+
+```bash
+https_proxy=http://127.0.0.1:7890 curl -I https://www.google.com
+```
+
+### 不吃环境变量的客户端
+
+| 工具 | 走代理姿势 |
+|---|---|
+| `git` | `git config --global http.proxy http://127.0.0.1:7890`，取消用 `--unset http.proxy` |
+| `apt` | 新建 `/etc/apt/apt.conf.d/95proxy`：`Acquire::http::Proxy "http://127.0.0.1:7890";` 和 `Acquire::https::Proxy "http://127.0.0.1:7890";` |
+| `docker pull` / daemon | 改 `~/.docker/config.json` 的 `proxies` 段；或加 daemon drop-in `/etc/systemd/system/docker.service.d/http-proxy.conf` 然后 `systemctl daemon-reload && systemctl restart docker` |
+| `npm` | `npm config set proxy http://127.0.0.1:7890 && npm config set https-proxy http://127.0.0.1:7890` |
+| `pip` | `pip install --proxy http://127.0.0.1:7890 <pkg>`，或写到 `~/.pip/pip.conf` 的 `[global] proxy = ...` |
+
+### proxychains（包裹任意进程）
+
+```bash
+sudo apt-get install -y proxychains
+# 编辑 /etc/proxychains.conf 末尾加：http 127.0.0.1 7890
+proxychains curl -kIsS https://www.google.com
+```
+
+适合那些既不读环境变量、又没原生代理配置的老程序（动态库注入劫持 `connect()`）。
+
+## 9. 紧急回滚
 
 如果新配置把服务搞挂了又不想现场修：
 

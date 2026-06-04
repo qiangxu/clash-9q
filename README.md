@@ -74,13 +74,9 @@ sudo rm -f /etc/systemd/system/clash@.service
 sudo systemctl daemon-reload
 ```
 
-## 8. proxychains（可选）
+## 8. 在 180 上让命令行走代理
 
-```bash
-sudo apt-get install proxychains
-# 编辑 /etc/proxychains.conf 末尾加 http 代理：http 127.0.0.1 7890
-proxychains curl -kIsS https://www.google.com
-```
+`~/.bashrc` 里有 `tkk`（开） / `sgg`（关）alias，覆盖大多数工具。详见 [`docs/runbook.md` §8](docs/runbook.md#8-远端命令行让程序走代理)（含 git / apt / docker / npm / pip / proxychains 等特例）。
 
 ## 9. 常用命令
 
