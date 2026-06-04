@@ -78,30 +78,33 @@ V-Ninja GUI 在 mac 上会自动拉新订阅。要把同样的配置推到远端
 
 ## 5. 本地访问 dashboard（选节点 / 看流量）
 
-远端 mihomo 在 `127.0.0.1:9090` 暴露 RESTful API + 内嵌 yacd UI（仅监听 loopback）。SSH 隧道映射到本机 1234：
+远端 mihomo 在 `127.0.0.1:9090` 暴露 RESTful API + 内嵌 yacd UI（仅监听 loopback）。直接 `-L` 转发会跟下面的 SOCKS 端口冲突，所以走「SOCKS 进 180 + 直连远端 9090」两步。
+
+**第 1 步**：在 mac 上起 SSH SOCKS 隧道，本机 `1234` 作 SOCKS5 出口落到 180：
 
 ```bash
-./scripts/port-forward-ui.sh         # 默认本机 1234
-./scripts/port-forward-ui.sh 5678    # 自定义端口
+ssh -N -o ExitOnForwardFailure=yes \
+    -D 127.0.0.1:1234 \
+    -J qiangxu@112.124.26.131:48425 qiangxu@192.168.3.180
 ```
 
-脚本会自动用 `open` 弹浏览器到 `http://localhost:1234/ui/`。Ctrl-C 关闭隧道。
+**第 2 步**：浏览器走这个 SOCKS（系统代理 / SwitchyOmega / FoxyProxy 之类），然后访问：
 
-yacd 首屏的登录表单填：
+```
+http://127.0.0.1:9090/ui/
+```
+
+> 此时浏览器视角已经"在 180 里"，`127.0.0.1` 就是 180 自己。
+
+yacd 首屏表单填：
 
 | 字段 | 值 |
 |---|---|
-| API Base URL | `http://localhost:1234`（脚本里 LOCAL_PORT） |
+| Host | `127.0.0.1` |
+| Port | `9090` |
 | Secret | `9q-ninja-local`（同 `scripts/sync-from-gui.sh` 里的 `EXTERNAL_CONTROLLER_SECRET`） |
 
-> secret 强行不为空是 yacd 表单的要求（API 本身也仅监听 127.0.0.1，安全意义有限）。改值需要同时改 `sync-from-gui.sh` 顶部常量 + 重新同步一次。
-
-手动等价命令：
-
-```bash
-ssh -N -L 1234:127.0.0.1:9090 \
-    -J qiangxu@112.124.26.131:48425 qiangxu@192.168.3.180
-```
+> secret 强行不为空是 dashboard 表单的硬性要求（API 本身仅监听 127.0.0.1，安全意义有限）。要改值，同时改 `sync-from-gui.sh` 顶部常量 + 重新同步一次。
 
 dashboard 里可以：
 - 在 `🚀 节点选择` group 手动切节点（覆盖 url-test 的自动判定）

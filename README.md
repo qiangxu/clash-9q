@@ -55,12 +55,14 @@ V-Ninja GUI 在 mac 上会自动拉新订阅；要把同一份配置推到远端
 
 ## 6. 本地访问 dashboard（选节点 / 看流量）
 
-```bash
-./scripts/port-forward-ui.sh         # 默认本机 1234
-./scripts/port-forward-ui.sh 5678    # 自定义端口
-```
+走 SSH SOCKS 进 180，再用浏览器直连远端 9090。详见 [`docs/runbook.md` §5](docs/runbook.md#5-本地访问-dashboard选节点--看流量)。
 
-会自动开浏览器到 `http://localhost:<port>/ui/`（yacd dashboard）。Ctrl-C 关闭隧道。
+```bash
+ssh -N -D 127.0.0.1:1234 \
+    -J qiangxu@112.124.26.131:48425 qiangxu@192.168.3.180
+# 然后浏览器走 SOCKS5 127.0.0.1:1234，访问 http://127.0.0.1:9090/ui/
+# yacd 表单填 Host=127.0.0.1 Port=9090 Secret=9q-ninja-local
+```
 
 ## 7. 从旧 clash@* 实例迁移
 
