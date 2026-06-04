@@ -87,6 +87,15 @@ V-Ninja GUI 在 mac 上会自动拉新订阅。要把同样的配置推到远端
 
 脚本会自动用 `open` 弹浏览器到 `http://localhost:1234/ui/`。Ctrl-C 关闭隧道。
 
+yacd 首屏的登录表单填：
+
+| 字段 | 值 |
+|---|---|
+| API Base URL | `http://localhost:1234`（脚本里 LOCAL_PORT） |
+| Secret | `9q-ninja-local`（同 `scripts/sync-from-gui.sh` 里的 `EXTERNAL_CONTROLLER_SECRET`） |
+
+> secret 强行不为空是 yacd 表单的要求（API 本身也仅监听 127.0.0.1，安全意义有限）。改值需要同时改 `sync-from-gui.sh` 顶部常量 + 重新同步一次。
+
 手动等价命令：
 
 ```bash
