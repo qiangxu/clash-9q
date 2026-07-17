@@ -72,13 +72,15 @@ V-Ninja GUI 在 mac 上会自动拉新订阅。要把同样的配置推到远端
 ./scripts/sync-from-gui.sh other     # ninja@other
 ```
 
-脚本逻辑：抓 GUI 内核当前用的 yaml → 删 `tun:` / `dns:` / `secret:` / `external-controller-cors:` 段 → 改端口为 7890 / 9090 → scp 到远端 `config/<instance>.yaml` → 重启 `ninja@<instance>` → 验证。
+脚本逻辑：抓 GUI 内核当前用的 yaml → 删 `tun:` / `dns:` / `external-controller-cors:` 段 → 改端口 7890 / 9090 + 注入 `secret` → **重新注入 system 栈 TUN + fake-ip DNS(listen 1053)**（透明代理兜底，见 [`findings.md` §9](findings.md)）→ scp 到远端 `config/<instance>.yaml` → 重启 `ninja@<instance>` → 验证。
+
+> **两条出口路**：透明 TUN 兜"不认代理的程序"；node / Claude Code 走 `~/.bashrc` 里的 `HTTP(S)_PROXY=127.0.0.1:7890`（loopback 不经 TUN，node.js ≈9/10；TUN 路 system 栈 ≈6/10，别让 node 走 TUN）。
 
 **前提**：mac 上 Clash V-Ninja GUI 必须正在运行（脚本通过 ninja-mihomo 进程的 `-f` 参数定位 yaml 路径）。
 
 ## 5. 本地访问 dashboard（选节点 / 看流量）
 
-远端 mihomo 在 `127.0.0.1:9090` 暴露 RESTful API + 内嵌 yacd UI（仅监听 loopback）。直接 `-L` 转发会跟下面的 SOCKS 端口冲突，所以走「SOCKS 进 180 + 直连远端 9090」两步。
+远端 mihomo 在 `0.0.0.0:9090` 暴露 RESTful API + 内嵌 web dashboard（现为 **zashboard**，`ui/`）。可经 ZeroTier 直接开 `http://10.241.183.157:9090/ui/`，或走「SOCKS 进 180 + 直连远端 9090」两步。
 
 **第 1 步**：在 mac 上起 SSH SOCKS 隧道，本机 `1234` 作 SOCKS5 出口落到 180：
 

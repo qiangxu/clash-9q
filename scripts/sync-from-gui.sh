@@ -49,6 +49,42 @@ else:
     txt = re.sub(r"^(external-controller: \S+)$", rf"\1\nsecret: {secret}", txt, flags=re.M)
 for k in ("dns", "tun", "external-controller-cors"):
     txt = strip_top_section(txt, k)
+# Re-inject a server-side TUN (system stack) + fake-ip DNS so 透明代理 survives
+# every sync. Programs that don't honour HTTP(S)_PROXY get caught by the TUN.
+# NOTE: node/Claude Code should still use the HTTP(S)_PROXY env (127.0.0.1:7890,
+# loopback -> mixed-port, ~9/10). The system-stack TUN path is weaker for node.js
+# TLS (~6/10); gVisor stack was ~0/10 — do NOT use gVisor here.
+txt += """
+tun:
+  enable: true
+  stack: system
+  auto-route: true
+  auto-redirect: true
+  auto-detect-interface: true
+  dns-hijack:
+    - any:53
+  mtu: 1500
+dns:
+  enable: true
+  listen: 0.0.0.0:1053          # NOT :53 — avoid clashing with systemd-resolved stub
+  ipv6: false
+  enhanced-mode: fake-ip
+  fake-ip-range: 28.0.0.1/8
+  fake-ip-filter:
+    - "*.lan"
+    - "*.local"
+    - "+.internal"
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+    - https://1.1.1.1/dns-query
+  fallback:
+    - 8.8.8.8
+    - 1.1.1.1
+"""
 open(dst, "w").write(txt)
 PY
 echo "rewrote: $(wc -l < "${DEPLOY_YAML}") lines"

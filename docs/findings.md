@@ -102,4 +102,18 @@ tun:
 - `dns.listen: :53` 会跟 systemd-resolved 抢端口（`/run/systemd/resolve/stub-resolv.conf` 上的 127.0.0.53）
 - `fake-ip` 没了 TUN 配合就只是脏数据
 
-所以 `sync-from-gui.sh` 把 `dns:` / `tun:` / `external-controller-cors:` 整段删掉，mihomo 走系统 DNS（resolv.conf → 系统 resolver → 公网 DNS）就够。
+所以 `sync-from-gui.sh` 先把 `dns:` / `tun:` / `external-controller-cors:` 整段删掉，再按 §9 的结论**重新注入一套 system 栈 TUN + fake-ip DNS(listen 1053)**——见下。
+
+## 8. headless 内核不解码 PASS-INFO；官方 mihomo 不能用（2026-07-17 复盘）
+
+- 一度想让 180 内核自己解码旧版 cname01：把含 `#!PASS-INFO` 的旧版 yaml 直接喂给 `ninja-mihomo`，日志实测 `dial ... cname01b-...cnameip.xyz:12245 connect error: dns resolve failed: couldn't find ip`。**解码在 V-Ninja GUI(Tauri 主进程)里做，不在 ninja-mihomo 内核里** —— §3 的判断实锤。所以 headless 只能吃 GUI 渲染后的 static- 新版配置。
+- 一度想改用**官方 mihomo/verge-mihomo**(版本透明)。两个致命问题：① 不认 `type: ninja`(起不来)；② 就算换官方核心配这机场的普通节点，**node.js 的 TLS 大量被节点 reset**——30 个节点里逐一压测只有 `日本 01 AnyTLS 直连` 一个 node.js 能到 9/10，其余基本 0/10。**ninja 内核 + static 节点**才对 node.js 友好。结论：老老实实用 ninja 内核。
+
+## 9. server 端要不要 TUN：透明代理 vs 环境变量，两条路并存
+
+§7 说"server 别开 TUN"是就"纯 CLI 都认代理"这个前提。实际有些程序(Go 二进制不读 env、UDP)不认 `HTTP(S)_PROXY`，需要透明代理兜底。做法：
+
+- **TUN 用 `stack: system`,不要 gVisor。** 实测 node.js 走 TUN：gVisor ≈ 0/10，system ≈ 6/10，都不如代理路。所以 TUN 只用来兜"不认代理的程序"。
+- **node / Claude Code 一律走 `HTTP(S)_PROXY` 环境变量**(`127.0.0.1:7890`，loopback 不经 TUN，≈9/10)。在 180 的 `~/.bashrc` 里 export 了 `HTTP(S)_PROXY` + `NO_PROXY`(本地/内网)。
+- `dns.listen` 用 `0.0.0.0:1053`（不是 :53，避开 systemd-resolved 的 127.0.0.53:53）。
+- 这套 tun/dns 由 `sync-from-gui.sh` 在剥离后**重新注入**（见脚本 python 段），所以每次同步订阅后透明代理不会丢。
